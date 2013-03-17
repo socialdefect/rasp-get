@@ -1,0 +1,72 @@
+#!/bin/bash
+####### Sponsored by Codejugglers ###################
+######### http://codejugglers.nl ####################
+## By Arjan van Lent, aka Socialdefect ##############
+########### Licence: GPLv3+ #########################
+## Get latest licence at http://gnu.org/licence #####
+### Don't Forget To Share!!!!!! #####################
+
+## Rasp-get functions for pacman
+
+install(){
+    pacman -Sy "$@"
+}
+
+remove(){
+    pacman -R "$@"
+}
+
+uninstall(){
+    remove
+}
+
+sync(){
+    pacman -Sy
+}
+
+upgrade(){
+    pacman -Syu
+}
+
+search(){
+    pacman -Ss "$@"
+}
+
+localinstall(){
+    for pkg in "$@" ; do
+        pacman -U "$pkg"
+    done
+}
+
+installpkg(){
+    localinstall
+}
+
+clean(){
+    pacman -Scc
+}
+
+depclean(){
+    pacman -Qdt
+}
+
+wwwinstall(){
+    if [ -f `which curl` ] ; then
+        DL="curl -O"
+    elif [ -f `which wget` ] ; then
+        DL="wget -c"
+    fi
+    
+    if [ -d /var/cache/rasp-get/Packages/Incomplete ] ; then
+        echo 'Download directory exists...'
+    else
+        echo 'Creating the download directory ==> '
+        mkdir -pv /var/cache/rasp-get/Packages/Incomplete
+    fi
+    
+    cd /var/cache/rasp-get/Packages/Incomplete/
+    "$DL" "$1" && echo 'Download finished, starting install....'
+    for dirs in `ls` ; do
+        pacman -U "$dirs" && mv -v "$dirs" ../
+    done
+}

@@ -1,0 +1,81 @@
+#!/bin/bash
+####### Sponsored by Codejugglers ###################
+######### http://codejugglers.nl ####################
+## By Arjan van Lent, aka Socialdefect ##############
+########### Licence: GPLv3+ #########################
+## Get latest licence at http://gnu.org/licence #####
+### Don't Forget To Share!!!!!! #####################
+
+## Rasp-get functions for apt-get/aptitude/dpkg
+
+install(){
+    apt-get install "$@"
+}
+
+remove(){
+    apt-get remove "$@"
+}
+
+uninstall(){
+    remove
+}
+
+sync(){
+    apt-get update
+}
+
+upgrade(){
+    apt-get dist-upgrade
+}
+
+search(){
+    if [ -f `which aptitude` ] ; then
+        aptitude search "$@"
+    else
+        apt-cache search "$@"
+    fi
+}
+
+localinstall(){
+    if [ -f `which gdebi` ] ; then
+        gdebi "$@"
+    else
+        dpkg -i "$@" &>/dev/null
+        apt-get -f install -y
+    fi
+}
+
+installpkg(){
+    localinstall
+}
+
+clean(){
+    apt-get clean
+}
+
+depclean(){
+    CleanConf='yes'
+    read -p "Do you want to remove configuration files belonging to orphaned packages? Press Enter to keep config or type purge to remove: " CleanConf
+    apt-get "--$CleanConf" autoremove
+}
+
+wwwinstall(){
+    if [ -f `which curl` ] ; then
+        DL="curl -O"
+    elif [ -f `which wget` ] ; then
+        DL="wget -c"
+    fi
+    
+    if [ -d /var/cache/rasp-get/Packages/Incomplete ] ; then
+        echo 'Download directory exists...'
+    else
+        echo 'Creating the download directory ==> '
+        mkdir -pv /var/cache/rasp-get/Packages/Incomplete
+    fi
+    
+    cd /var/cache/rasp-get/Packages/Incomplete/
+    "$DL" "$1" && echo 'Download finished, starting install....'
+    for debs in `ls *.deb` ; do
+        localinstall "$debs" && mv -v "$debs" ../
+    done
+}

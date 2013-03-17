@@ -1,0 +1,92 @@
+#!/bin/bash
+####### Sponsored by Codejugglers ###################
+######### http://codejugglers.nl ####################
+## By Arjan van Lent, aka Socialdefect ##############
+########### Licence: GPLv3+ #########################
+## Get latest licence at http://gnu.org/licence #####
+### Don't Forget To Share!!!!!! #####################
+
+## Rasp-get functions for YUM/RPM
+## Note: This script depends on the yum-utils package,
+## it will be installed when it's needed.
+
+install(){
+    yum install "$@"
+}
+
+remove(){
+    yum remove "$@"
+}
+
+uninstall(){
+    remove
+}
+
+sync(){
+    yum install foo
+}
+
+upgrade(){
+    yum update
+}
+
+search(){
+    yum search "$@"
+}
+
+localinstall(){
+    yum localinstall "$@"
+}
+
+installpkg(){
+    localinstall
+}
+
+clean(){
+    yum clean all
+}
+
+depclean(){
+    if [ -f `which package-cleanup` ] ; then
+        yum-clean(){
+            package-cleanup --quiet --leaves --exclude-bin
+            echo 'Will Start Uninstalling in 10 sec'
+            sleep 3
+            echo '7 seconds' && sleep 3
+            echo '................3' && sleep 1
+            echo '.........2' && sleep 1
+            echo '....1' && sleep 1
+            echo '----------+++++----------'
+            echo 'Starting the removal of orphans....'
+            echo
+            package-cleanup --quiet --leaves --exclude-bin | xargs yum remove
+        }
+        yum-clean
+    else
+        echo 'For this action you will need package-cleanup'
+        read -p 'Would you like to install it now? (y/n): ' YESNO
+            if [[ $YESNO =  [yY] ]] ; then
+                yum install package-cleanup
+                yum-clean
+            fi
+    fi
+}
+
+wwwinstall(){
+    if [ -f `which curl` ] ; then
+        DL="curl -O"
+    elif [ -f `which wget` ] ; then
+        DL="wget -c"
+    fi
+    
+    if [ -d /var/cache/rasp-get/Packages/Incomplete ] ; then
+        echo 'Download directory exists...'
+    else
+        echo 'Creating the download directory ==> '
+        mkdir -pv /var/cache/rasp-get/Packages/Incomplete
+    fi
+    
+    cd /var/cache/rasp-get/Packages/Incomplete/
+    "$DL" "$1" && echo 'Download finished, starting install....'
+    yum localinstall *.rpm && mv *.rpm ../
+}
