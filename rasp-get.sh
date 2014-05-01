@@ -40,12 +40,13 @@ WhereAmI(){
     elif [ -f `which yum` ] ; then
         DISTRO='rhel'
     fi
-    echo "$DISTRO" > /var/rasp-get.dist
-    echo "$PMs" > /var/rasp-get.dist
+    echo "DISTRO=${DISTRO}" > /var/rasp-get.dist
+    echo "PMs=${PMs}" >> /var/rasp-get.dist
 }
 
 if [ -f /var/rasp-get.dist ] ; then
     echo "Found distribution info in: /var/rasp-get.dist"
+    . /var/rasp-get.dist
 else
     WhereAmI
 fi
